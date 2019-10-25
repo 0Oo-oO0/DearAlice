@@ -1,6 +1,9 @@
 package com.alva.testvoice.Activity;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -8,12 +11,14 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -35,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     public static TextToSpeech textToSpeech;
     private ListView drawerList;
     private String[] drawTitles;
+    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle drawerToggle;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -74,16 +81,24 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }
-
             }
 
         });
         moveTaskToBack(true);
         drawTitles = getResources().getStringArray(R.array.drawer_title);
+        drawerLayout = findViewById(R.id.drawer_layout);
         drawerList = findViewById(R.id.drawer);
         drawerList.setAdapter(new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_activated_1, drawTitles));
         drawerList.setOnItemClickListener(new DrawerItemClickListener());
+        if(savedInstanceState == null){
+            selectItem(0);
+        }
+        drawerToggle = new ActionBarDrawerToggle(this,drawerLayout,
+                R.string.open_drawer,R.string.close_drawer){};
+        drawerLayout.setDrawerListener(drawerToggle);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
     }
 
 
@@ -142,6 +157,26 @@ public class MainActivity extends AppCompatActivity {
             title = getResources().getString(R.string.debug);
         }
         getSupportActionBar().setTitle(title);
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        drawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if(drawerToggle.onOptionsItemSelected(item)){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

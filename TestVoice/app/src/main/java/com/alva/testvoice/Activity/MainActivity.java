@@ -32,7 +32,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
 
-   public static TextToSpeech textToSpeech;
+    public static TextToSpeech textToSpeech;
     private ListView drawerList;
     private String[] drawTitles;
 
@@ -50,24 +50,24 @@ public class MainActivity extends AppCompatActivity {
         window.setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
 
         setContentView(R.layout.activity_main);
-        if(!isEnabled()){
+        if (!isEnabled()) {
             startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
         }
-        textToSpeech = new TextToSpeech(getApplicationContext(),new TextToSpeech.OnInitListener() {
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
 
             @Override
 
             public void onInit(int status) {
 
-                if (status==TextToSpeech.SUCCESS) {
+                if (status == TextToSpeech.SUCCESS) {
 
                     //设置朗读语言
 
                     //这里要要注意一下初始化的步骤，这里是一个异步操作
 
-                    int supported =textToSpeech.setLanguage(Locale.CHINA);
+                    int supported = textToSpeech.setLanguage(Locale.CHINA);
 
-                    if ((supported!=TextToSpeech.LANG_AVAILABLE)&&(supported!=TextToSpeech.LANG_COUNTRY_AVAILABLE)) {
+                    if ((supported != TextToSpeech.LANG_AVAILABLE) && (supported != TextToSpeech.LANG_COUNTRY_AVAILABLE)) {
 
                         Toast.makeText(MainActivity.this, "不支持当前语言！", Toast.LENGTH_SHORT).show();
 
@@ -127,10 +127,22 @@ public class MainActivity extends AppCompatActivity {
         ft.replace(R.id.content_frame, fragment);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
+        setActionBarTitle(position);
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(drawerList);
     }
 
+    private void setActionBarTitle(int position) {
+        String title;
+        if (position == 0) {
+            title = getResources().getString(R.string.app_name);
+        } else if (position == 1) {
+            title = getResources().getString(R.string.setting);
+        } else {
+            title = getResources().getString(R.string.debug);
+        }
+        getSupportActionBar().setTitle(title);
+    }
 
     @Override
     protected void onDestroy() {

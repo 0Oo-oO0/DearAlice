@@ -5,6 +5,7 @@
     <string name="open_drawer">Open drawer</string>
     <string name="close_drawer">Close drawer</string>
     <string name="setting">设置</string>
+    <string name="debug">开发者界面</string>
     <string-array name="drawer_title">
         <item>主页</item>
         <item>设置</item>

@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         //Then call setStatusBarColor.
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(getResources().getColor(R.color.colorPrimary));
+        //设置底部导航栏颜色
+        window.setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
 
         setContentView(R.layout.activity_main);
         if(!isEnabled()){

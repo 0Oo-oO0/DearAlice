@@ -2,6 +2,9 @@
     <string name="app_name">DearAlice</string>
     <string name="package_name">PackageName</string>
     <string name="speaker_rate">说话速度</string>
+    <string name="open_drawer">Open drawer</string>
+    <string name="close_drawer">Close drawer</string>
+    <string name="setting">设置</string>
     <string-array name="drawer_title">
         <item>主页</item>
         <item>设置</item>

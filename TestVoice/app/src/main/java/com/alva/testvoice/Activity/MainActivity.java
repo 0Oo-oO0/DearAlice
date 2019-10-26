@@ -10,14 +10,21 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -28,6 +35,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.alva.testvoice.R;
+import com.alva.testvoice.fragment.SettingDatabaseHelper;
 import com.alva.testvoice.fragment.SettingFragment;
 import com.alva.testvoice.fragment.TestFragment;
 import com.alva.testvoice.fragment.TopFragment;
@@ -38,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static TextToSpeech textToSpeech;
+    public static boolean notificationSwitch;
     private ListView drawerList;
     private String[] drawTitles;
     private DrawerLayout drawerLayout;
@@ -56,49 +65,13 @@ public class MainActivity extends AppCompatActivity {
         //设置底部导航栏颜色
         window.setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
 
+
         setContentView(R.layout.activity_main);
         if (!isEnabled()) {
             startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
         }
-        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
 
-            @Override
-
-            public void onInit(int status) {
-
-                if (status == TextToSpeech.SUCCESS) {
-
-                    //设置朗读语言
-
-                    //这里要要注意一下初始化的步骤，这里是一个异步操作
-
-                    int supported = textToSpeech.setLanguage(Locale.CHINA);
-
-                    if ((supported != TextToSpeech.LANG_AVAILABLE) && (supported != TextToSpeech.LANG_COUNTRY_AVAILABLE)) {
-
-                        Toast.makeText(MainActivity.this, "不支持当前语言！", Toast.LENGTH_SHORT).show();
-
-                    }
-
-                }
-            }
-
-        });
-        moveTaskToBack(true);
-        drawTitles = getResources().getStringArray(R.array.drawer_title);
-        drawerLayout = findViewById(R.id.drawer_layout);
-        drawerList = findViewById(R.id.drawer);
-        drawerList.setAdapter(new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_activated_1, drawTitles));
-        drawerList.setOnItemClickListener(new DrawerItemClickListener());
-        if(savedInstanceState == null){
-            selectItem(0);
-        }
-        drawerToggle = new ActionBarDrawerToggle(this,drawerLayout,
-                R.string.open_drawer,R.string.close_drawer){};
-        drawerLayout.setDrawerListener(drawerToggle);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        InitCreate(savedInstanceState);
     }
 
 
@@ -172,11 +145,105 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(drawerToggle.onOptionsItemSelected(item)){
+        if (drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        switch (item.getItemId()) {
+            case R.id.notification_switch:
+                ContentValues settingValues = new ContentValues();
+                if (notificationSwitch) {
+                    notificationSwitch = false;
+                    settingValues.put("VALUE", 0);
+                    Toast.makeText(MainActivity.this, "stop ！", Toast.LENGTH_SHORT).show();
+                } else {
+                    notificationSwitch = true;
+                    settingValues.put("VALUE", 1);
+                    Toast.makeText(MainActivity.this, "start ！", Toast.LENGTH_SHORT).show();
+                }
+                SQLiteOpenHelper settingDatabaseHelper = new SettingDatabaseHelper(this);
+                try {
+                    SQLiteDatabase db = settingDatabaseHelper.getWritableDatabase();
+                    db.update("TEXTTOSPEACH", settingValues, "NAME = ?", new String[]{"Switch"});
+                    db.close();
+                } catch (SQLiteException e) {
+                    Toast toast = Toast.makeText(this, "Database unavailable", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void InitCreate(Bundle savedInstanceState) {
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+
+            @Override
+
+            public void onInit(int status) {
+
+                if (status == TextToSpeech.SUCCESS) {
+
+                    //设置朗读语言
+
+                    //这里要要注意一下初始化的步骤，这里是一个异步操作
+
+                    int supported = textToSpeech.setLanguage(Locale.CHINA);
+
+                    if ((supported != TextToSpeech.LANG_AVAILABLE) && (supported != TextToSpeech.LANG_COUNTRY_AVAILABLE)) {
+
+                        Toast.makeText(MainActivity.this, "不支持当前语言！", Toast.LENGTH_SHORT).show();
+
+                    }
+
+                }
+            }
+
+        });
+
+        drawTitles = getResources().getStringArray(R.array.drawer_title);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        drawerList = findViewById(R.id.drawer);
+        drawerList.setAdapter(new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_activated_1, drawTitles));
+        drawerList.setOnItemClickListener(new DrawerItemClickListener());
+        if (savedInstanceState == null) {
+            selectItem(0);
+        }
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
+                R.string.open_drawer, R.string.close_drawer) {
+        };
+        drawerLayout.setDrawerListener(drawerToggle);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        try {
+            SQLiteOpenHelper settingDatabaseHelper = new SettingDatabaseHelper(this);
+            SQLiteDatabase db = settingDatabaseHelper.getWritableDatabase();
+            Cursor cursor = db.query("TEXTTOSPEACH", new String[]{"NAME", "VALUE"}, null, null, null, null, "_id");
+            if (cursor.moveToLast()) {
+                int isOpen = cursor.getInt(1);
+                if (isOpen == 1) {
+                    notificationSwitch = true;
+                } else {
+                    notificationSwitch = false;
+                }
+            }
+            cursor.close();
+            db.close();
+        } catch (SQLiteException e) {
+            Toast toast = Toast.makeText(this, "Database unavailable", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
     }
 
     @Override

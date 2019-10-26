@@ -5,12 +5,12 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-class SettingDatabaseHelper extends SQLiteOpenHelper {
+public class SettingDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "alice";
     private static final int DB_VERSION = 1;
 
-    SettingDatabaseHelper(Context context) {
+    public SettingDatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
@@ -29,6 +29,7 @@ class SettingDatabaseHelper extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE TEXTTOSPEACH (_id INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, VALUE INTEGAR)");
             insertTTSItem(db, "Rate", 5);
             insertTTSItem(db, "Pitch", 5);
+            insertTTSItem(db,"Switch",0);
         }
         if (oldVersion < 2) {
         }
